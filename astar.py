@@ -1,4 +1,6 @@
 import math
+import csv
+import networkx as nx
 
 class Graph(object):
     def __init__(self):
@@ -72,35 +74,61 @@ def shortest_path(graph, initial_node, goal_node, h):
     route.reverse()  # reverse this list so that we are going from start to goal
     return route
 
+def read_adj(file, fp):
+
+    g = Graph()
+    data = []   # Array container of adjacency matrix
+    coord = []  # Array of coordinates 
+
+    # open adjacency file
+    with open(file) as fl:
+        read = csv.reader(fl)
+        for col in read:
+            row = []
+            i = 0
+            for i in range(len(col)):
+                row.append(float(col[i]))
+                i += 1
+            data.append(row)
+    
+    for i in range(0,len(data)):
+        # print(data[i][0] + data[i][1] + data[i][2] + data[i][3] + data[i][4])
+
+    # open coordinate file
+    with open(fp) as f:
+        reader = csv.reader(f)
+        for col in reader:
+            pt = float(col[0]),float(col[1])
+            coord.append(pt)
+    # print(coord)
+
+    # initialize graph nodes and edges
+    for i in range(0,len(data)):
+        g.add_node(coord[i])
+        # print("added boi")
+        for j in range(0,i):
+            if (data[i][j] == 1):
+                g.add_edge(coord[i], coord[j], distance(coord[i], coord[j]))
+
+    return g
+
+def distance(p1, p2):
+    return math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+
+"""     for i in range(1,len(data)-1):
+        for j in range(0,len(data[i])):
+            if (data[i][j] == 1):
+                graph.add_node(coord[i])
+                graph.add_node(coord[j]) """
 
 if __name__ == '__main__':
     # Used Euclidean distance heuristic, slower but a bit more accurate
     sldist = lambda c1, c2: math.sqrt((c2[0] - c1[0])**2 + (c2[1] - c1[1])**2)
-    g = Graph()
+    
+    file = input("Enter adjacency matrix file (.csv) : ")
+    coord = input("Enter nodes coordinate file (.csv) : ")
+    g = read_adj(file, coord)
+
     # here we set up the graph we are using for testing purposes
-    g.add_node((0, 0))
-    g.add_node((1, 1))
-    g.add_node((1, 0))
-    g.add_node((0, 1))
-    g.add_node((2, 2))
-
-    g.add_edge((0, 0), (1, 1), 1.5)
-    g.add_edge((0, 0), (0, 1), 1.2)
-    g.add_edge((0, 0), (1, 0), 1)
-    g.add_edge((1, 0), (2, 2), 2)
-    g.add_edge((0, 1), (2, 2), 2)
-    g.add_edge((1, 1), (2, 2), 1.5)
 
     assert shortest_path(g, (0, 0), (2, 2), sldist) == [(0, 0), (1, 1), (2, 2)]
-
-    assert shortest_path(g, (0, 0), (2, 2), sldist) == [(0, 0), (1, 1), (2, 2)]
-
-    g.distances[((0, 0), (1, 1))] = 2
-    g.distances[((1, 1), (0, 0))] = 2
-
-    assert shortest_path(g, (0, 0), (2, 2), sldist) == [(0, 0), (1, 0), (2, 2)]
-
-    g.distances[((0, 0), (1, 0))] = 1.3
-    g.distances[((1, 0), (0, 0))] = 1.3
-
-    assert shortest_path(g, (0, 0), (2, 2), sldist) == [(0, 0), (0, 1), (2, 2)]
