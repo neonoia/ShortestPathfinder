@@ -90,9 +90,6 @@ def read_adj(file, fp):
                 row.append(float(col[i]))
                 i += 1
             data.append(row)
-    
-    for i in range(0,len(data)):
-        # print(data[i][0] + data[i][1] + data[i][2] + data[i][3] + data[i][4])
 
     # open coordinate file
     with open(fp) as f:
@@ -114,20 +111,15 @@ def read_adj(file, fp):
 
 def distance(p1, p2):
     return math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
-
-"""     for i in range(1,len(data)-1):
-        for j in range(0,len(data[i])):
-            if (data[i][j] == 1):
-                graph.add_node(coord[i])
-                graph.add_node(coord[j]) """
+    
 
 if __name__ == '__main__':
     # Used Euclidean distance heuristic, slower but a bit more accurate
     sldist = lambda c1, c2: math.sqrt((c2[0] - c1[0])**2 + (c2[1] - c1[1])**2)
     
-    file = input("Enter adjacency matrix file (.csv) : ")
+    adj = input("Enter adjacency matrix file (.csv) : ")
     coord = input("Enter nodes coordinate file (.csv) : ")
-    g = read_adj(file, coord)
+    g = read_adj(adj, coord)
 
     # here we set up the graph we are using for testing purposes
 
