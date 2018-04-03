@@ -74,7 +74,7 @@ def shortest_path(graph, initial_node, goal_node, h):
     route.reverse()  # reverse this list so that we are going from start to goal
     return route, cost
 
-def read_adj(file, fp):
+def read_adj(file, fp, start, goal):
 
     g = Graph()
     gnx = nx.Graph()
@@ -105,35 +105,90 @@ def read_adj(file, fp):
     gnx.add_nodes_from(pos.keys())
     # print(coord)
 
+    cont = []   # graph number container
     # initialize graph nodes and edges
     for i in range(0,len(data)):
         g.add_node(coord[i])
-        # print("added boi")
         for j in range(0,i):
             if (data[i][j] == 1):
                 g.add_edge(coord[i], coord[j], distance(coord[i], coord[j]))
-                gnx.add_edge(i, j)
+                gnx.add_edge(i, j, weight=round(distance(coord[i], coord[j]),2))
+                x = i,j
+                cont.append(x)
 
-    return g, gnx, pos
+    return g, gnx, pos, coord, cont
 
+# function to calculate distance
 def distance(p1, p2):
     return math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
     
+# function to draw using networkx and matplotlib
+def draw(result, gnx, pos, coord, cont):
+    results = []
+    other = []
+
+    for i in range(len(coord)):
+        for j in range(len(result)):
+            if (coord[i] == result[j]):
+                results.append(i)
+                print(i)
+            else:
+                other.append(i)
+
+    nx.draw_networkx_nodes(gnx, pos,
+                            nodelist=results,
+                            node_color='r',
+                            node_size=500,
+                            alpha=0.8)
+
+    nx.draw_networkx_nodes(gnx, pos,
+                            nodelist=other,
+                            node_color='b',
+                            node_size=500,
+                            alpha=0.8)
+
+    resulting_edges = separate_edge(results, cont)
+    
+    nx.draw_networkx_edges(gnx, pos,
+                        edgelist=resulting_edges,
+                           width=5, alpha=0.5, edge_color='r')
+    nx.draw_networkx_edges(gnx, pos,
+                        edgelist=cont,
+                           width=5, alpha=0.5, edge_color='b')
+
+    print(nx.info(gnx))
+    plt.show()
+
+def separate_edge(result, cont):
+    results = []
+
+    j=0
+    for i in range(len(result)-1):
+        found = False
+        while (not found) and (j < len(cont)):
+            x = cont[j][0], cont[j][1]
+            if (cont[j][0] == result[i] and cont[j][1] == result[i+1]) or (cont[j][0] == result[i+1] and cont[j][1] == result[i]):
+                found = True
+                results.append(x)
+            j += 1
+
+    return results
+
 
 if __name__ == '__main__':
     # Used Euclidean distance heuristic, slower but a bit more accurate
     sldist = lambda c1, c2: math.sqrt((c2[0] - c1[0])**2 + (c2[1] - c1[1])**2)
     
-    adj = input("Enter adjacency matrix file (.csv) : ")
-    coord = input("Enter nodes coordinate file (.csv) : ")
-    g, gnx, pos = read_adj(adj, coord)
+    adj = input("Enter adjacency matrix file name (.csv) : ")
+    coord = input("Enter nodes coordinate file name (.csv) : ")
+    start = int(input("Enter desired start node : "))
+    goal = int(input("Enter desired destination node : "))
+    g, gnx, pos, coordinate, cont = read_adj(adj, coord, start, goal)
+
+    result, cost = shortest_path(g, coordinate[start], coordinate[goal], sldist)
 
     # here we set up the graph we are using for testing purposes
+    draw(result, gnx, pos, coordinate, cont)
 
-    print(nx.info(gnx))
-    nx.draw(gnx, pos)
-    plt.show()
-
-    result, cost = shortest_path(g, (0, 0), (2, 2), sldist)
     print(result)
     print(cost)
