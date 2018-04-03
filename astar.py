@@ -1,6 +1,7 @@
 import math
 import csv
 import networkx as nx
+import matplotlib.pyplot as plt
 
 class Graph(object):
     def __init__(self):
@@ -42,7 +43,7 @@ def astar(graph, initial_node, goal_node, h):
         # At this point we have the smallest f_score node (best combined choice of h_score and g_score) in current
         nodes.remove(current)  # Remove node current from the open_set of unvisited nodes
         if current == goal_node:  # if current is our goal node we return the set of visited nodes, we are done!
-            return visited
+            return visited, tentative_g_score
 
         closed_set.add(current)  # Add current to the set of closed nodes
         for neighbor in graph.edges[current]:  # Now we check all neighbors of current
@@ -62,9 +63,8 @@ def astar(graph, initial_node, goal_node, h):
                 f_score[neighbor] = g_score[neighbor] + h_score[neighbor]
     return False  # Cannot move from start to goal if we return False
 
-
 def shortest_path(graph, initial_node, goal_node, h):
-    paths = astar(graph, initial_node, goal_node, h)  # Returns route taken from astar algorithm
+    paths, cost = astar(graph, initial_node, goal_node, h)  # Returns route taken from astar algorithm
     route = [goal_node]
 
     while goal_node != initial_node:  # Route becomes an array of all Nodes used in the path
@@ -72,11 +72,12 @@ def shortest_path(graph, initial_node, goal_node, h):
         goal_node = paths[goal_node]
 
     route.reverse()  # reverse this list so that we are going from start to goal
-    return route
+    return route, cost
 
 def read_adj(file, fp):
 
     g = Graph()
+    gnx = nx.Graph()
     data = []   # Array container of adjacency matrix
     coord = []  # Array of coordinates 
 
@@ -92,11 +93,16 @@ def read_adj(file, fp):
             data.append(row)
 
     # open coordinate file
+    pos = {}    # create map of positions of each nodes
+    i = 0
     with open(fp) as f:
         reader = csv.reader(f)
         for col in reader:
             pt = float(col[0]),float(col[1])
             coord.append(pt)
+            pos[i] = coord[i]
+            i += 1
+    gnx.add_nodes_from(pos.keys())
     # print(coord)
 
     # initialize graph nodes and edges
@@ -106,8 +112,9 @@ def read_adj(file, fp):
         for j in range(0,i):
             if (data[i][j] == 1):
                 g.add_edge(coord[i], coord[j], distance(coord[i], coord[j]))
+                gnx.add_edge(i, j)
 
-    return g
+    return g, gnx, pos
 
 def distance(p1, p2):
     return math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
@@ -119,8 +126,14 @@ if __name__ == '__main__':
     
     adj = input("Enter adjacency matrix file (.csv) : ")
     coord = input("Enter nodes coordinate file (.csv) : ")
-    g = read_adj(adj, coord)
+    g, gnx, pos = read_adj(adj, coord)
 
     # here we set up the graph we are using for testing purposes
 
-    assert shortest_path(g, (0, 0), (2, 2), sldist) == [(0, 0), (1, 1), (2, 2)]
+    print(nx.info(gnx))
+    nx.draw(gnx, pos)
+    plt.show()
+
+    result, cost = shortest_path(g, (0, 0), (2, 2), sldist)
+    print(result)
+    print(cost)
