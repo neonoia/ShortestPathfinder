@@ -85,6 +85,8 @@ def shortest_path(graph, initial_node, goal_node, h):
 
 
 def read_adj(file, fp, start, goal):
+    # read inputted adjacency matrix file and coordinate file (in csv)
+    # and pass to graph constructor
 
     g = Graph()
     gnx = nx.Graph()
@@ -128,16 +130,13 @@ def read_adj(file, fp, start, goal):
 
     return g, gnx, coord, cont
 
-# function to calculate distance
-
-
 def distance(p1, p2):
+    # euclidean distance between 2 point based on its coordinates
     return math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
 
-# function to draw using networkx and matplotlib
-
-
 def draw(result, gnx, coord, cont, cost):
+    # using networkx and matplotlib
+    # draw resulting a* path
     other = set(coord) - set(result)
     other = list(other)
     result = convert_list(result, coord)
@@ -146,6 +145,7 @@ def draw(result, gnx, coord, cont, cost):
     pos = nx.get_node_attributes(gnx, 'pos')
     labels = nx.get_edge_attributes(gnx, 'weight')
 
+    # draw nodes
     nx.draw_networkx_nodes(gnx, pos,
                            nodelist=result,
                            node_color='r',
@@ -163,6 +163,7 @@ def draw(result, gnx, coord, cont, cost):
         temp = result[i], result[i+1]
         new_result.append(temp)
 
+    # draw edges
     nx.draw_networkx_edges(gnx, pos,
                            edgelist=new_result,
                            width=1, alpha=1, edge_color='b', label=labels)
@@ -173,12 +174,14 @@ def draw(result, gnx, coord, cont, cost):
 
     nx.draw_networkx_labels(gnx, pos, font_size=8, font_family='sans-serif')
 
+    # plot using matplotlib
     plt.axis('off')
     dist = "Total Distance = " + str(cost)
     plt.title("Path Result" + "\n" + dist)
     plt.show()
 
 def convert_list(conv, coord):
+    # function to convert from list of coordinates to list of graph number
     result = []
     for i in range(len(conv)):
         for j in range(len(coord)):
@@ -189,19 +192,22 @@ def convert_list(conv, coord):
 
 
 if __name__ == '__main__':
-    # Used Euclidean distance heuristic, slower but a bit more accurate
+    # Euclidean distance
     def sldist(c1, c2): return math.sqrt(
         (c2[0] - c1[0])**2 + (c2[1] - c1[1])**2)
 
+    # retrieve file name
     adj = input("Enter adjacency matrix file name (.csv) : ")
     coord = input("Enter nodes coordinate file name (.csv) : ")
     start = int(input("Enter desired start node : "))
     goal = int(input("Enter desired destination node : "))
+
     g, gnx, coordinate, cont = read_adj(adj, coord, start, goal)
 
     result, cost = shortest_path(
         g, coordinate[start], coordinate[goal], sldist)
 
+    # print result
     newrest = convert_list(result, coordinate)
     print("RESULT = ")
     print("Step by step to reach goal node from start node")
@@ -212,5 +218,4 @@ if __name__ == '__main__':
 
     print("\nTotal Distance = " + str(cost))
 
-    # here we set up the graph we are using for testing purposes
     draw(result, gnx, coordinate, cont, cost)
