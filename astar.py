@@ -144,6 +144,7 @@ def draw(result, gnx, coord, cont):
     other = convert_list(other, coord)
 
     pos = nx.get_node_attributes(gnx, 'pos')
+    labels = nx.get_edge_attributes(gnx, 'weight')
 
     nx.draw_networkx_nodes(gnx, pos,
                            nodelist=result,
@@ -162,22 +163,18 @@ def draw(result, gnx, coord, cont):
         temp = result[i], result[i+1]
         new_result.append(temp)
 
-    test = set(cont) - set(new_result)
-    test = list(test)
-
     nx.draw_networkx_edges(gnx, pos,
                            edgelist=new_result,
-                           width=1, alpha=1.0, edge_color='b')
+                           width=1, alpha=1, edge_color='b', label=labels)
 
     nx.draw_networkx_edges(gnx, pos,
                            edgelist=cont,
-                           width=1, alpha=0.5, edge_color='y')
+                           width=1, alpha=0.5, edge_color='y', label=labels)
 
     nx.draw_networkx_labels(gnx, pos, font_size=8, font_family='sans-serif')
 
     plt.axis('off')
     plt.show()
-
 
 def convert_list(conv, coord):
     result = []
@@ -203,5 +200,8 @@ if __name__ == '__main__':
     result, cost = shortest_path(
         g, coordinate[start], coordinate[goal], sldist)
 
+    print("Total Distance = " + str(cost))
+
     # here we set up the graph we are using for testing purposes
     draw(result, gnx, coordinate, cont)
+    print("Total Cost = " + str(cost))
