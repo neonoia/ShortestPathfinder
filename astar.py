@@ -167,7 +167,7 @@ def draw(result, gnx, coord, cont):
 
     nx.draw_networkx_edges(gnx, pos,
                            edgelist=new_result,
-                           width=1, alpha=0.5, edge_color='b')
+                           width=1, alpha=1.0, edge_color='b')
 
     nx.draw_networkx_edges(gnx, pos,
                            edgelist=cont,
