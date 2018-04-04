@@ -10,7 +10,7 @@
        * element that contains the map. */
 
     #map {
-      height: 75%;
+      height: 80%;
     }
 
     /* Optional: Makes the sample page fill the window. */
@@ -21,19 +21,9 @@
       margin: 0;
       padding: 0;
     }
-
-    .wrapper {
-      text-align: center;
-    }
-
-    .button {
-      position: absolute;
-      top: 50%;
-    }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDZEeoPR2F1iGQ91ZPEO7Y7bDgn9NYc0NU"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-  
   <script>
 
     // In the following example, markers appear when the user clicks on the map.
@@ -42,10 +32,10 @@
     var nodes = new Object();
 
     function initialize() {
-      var itb = { lat: -6.889251, lng: 107.610365 };
+      var alun = { lat: 6.9219275, lng: 107.6048659 };
       var map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 17,
-        center: itb
+        zoom: 17.5,
+        center: alun
       });
 
       // This event listener calls addMarker() when the map is clicked.
@@ -71,9 +61,6 @@
         document.getElementById("theButton").onclick = function () {
           doWork()
         };
-        document.getElementById("alunalun").onclick = function () {
-          loadAlun()
-        };
       }
 
     function doWork() {
@@ -84,30 +71,17 @@
         data: JSON.stringify(nodes)
       });
     }
-
-    function loadAlun() {
-      var alun = { lat: -6.9219275, lng: 107.6048659 };
-      var map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 17.5,
-        center: alun
-      });
-    }
     
     google.maps.event.addDomListener(window, 'load', initialize);
   </script>
-
+  <h1>Alun-alun Bandung</h1>
+  Click the button below when done adding node.
+  <br />
+  <br />
+  <button type="button" id="theButton">Click Me!</button>
   </head>
 
 <body>
-  <h1 align="center">A* Pathfinder</h1>
-  <p align="center">Insert start node and goal node below, and click the button to get the result</p>
-  <div class="wrapper">
-    <input type="text" size="7" name="a" text-align="center">
-    <input type="text" size="7" name="b" text-align="center">
-    <button type="button" href=# id="theButton" text-align="center">Find Path!</button>
-    <button type="button" id="alunalun" text-align="center">Change to Alun-alun Bandung!</button>
-  </div>
-  <br/>
   <div id="map"></div>
 </body>
 

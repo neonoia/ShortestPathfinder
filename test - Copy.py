@@ -1,7 +1,50 @@
-import math
-import csv
-import networkx as nx
-import matplotlib.pyplot as plt
+import sys
+
+from flask import Flask, render_template, request, redirect, Response, jsonify
+import random
+import json
+from math import sin, cos, sqrt, atan2, radians
+
+app = Flask(__name__)
+
+@app.route('/')
+def output():
+	# serve index template
+	return render_template('index.html')
+
+@app.route('/receiver', methods=['POST'])
+def worker():
+	# read json + reply
+	data = request.get_json(force = True)
+	a = request.args.get('a', 0, type=int)
+    b = request.args.get('b', 0, type=int)
+	coord = []
+
+	for i in range(1,len(data) + 1):
+		cont = []
+		cont.append(data[str(i)]['lat'])
+		cont.append(data[str(i)]['lng'])
+		coord.append(cont)
+	
+	print("what")
+	print(a)
+	print(b)
+	print(coord)
+
+
+	return jsonify(data)
+
+# function to calculate distance between 2 points
+def dist(p1, p2):
+	# approximate radius of earth in km
+	R = 6373.0
+	dlon = lon2 - lon1
+	dlat = lat2 - lat1
+	a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+	c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+	distance = R * c
+	return distance
 
 class Graph(object):
     def __init__(self):
@@ -46,7 +89,7 @@ def astar(graph, initial_node, goal_node, h):
         # Remove node current from the open_set of unvisited nodes
         nodes.remove(current)
         if current == goal_node:  # if current is our goal node we return the set of visited nodes, we are done!
-            return visited, g_score[goal_node]
+            return visited, tentative_g_score
 
         closed_set.add(current)  # Add current to the set of closed nodes
         # Now we check all neighbors of current
@@ -55,7 +98,7 @@ def astar(graph, initial_node, goal_node, h):
             if neighbor in closed_set:
                 continue
             tentative_g_score = g_score[current] + \
-                graph.distances[(current, neighbor)]
+            	graph.distances[(current, neighbor)]
             # Calculate g_score (distance known from start to current to this neighbor
             # If neighbor isn't in the set of Nodes to be evaluated or if it is and this path is lower we add
             # this neighbor to be evaluated
@@ -84,8 +127,6 @@ def shortest_path(graph, initial_node, goal_node, h):
 
 
 def read_adj(file, fp, start, goal):
-    # read inputted adjacency matrix file and coordinate file (in csv)
-    # and pass to graph constructor
 
     g = Graph()
     gnx = nx.Graph()
@@ -111,8 +152,9 @@ def read_adj(file, fp, start, goal):
         for col in reader:
             pt = float(col[0]), float(col[1])
             coord.append(pt)
-            gnx.add_node(i, pos=coord[i])
+            pos[i] = coord[i]
             i += 1
+    gnx.add_nodes_from(pos.keys())
     # print(coord)
 
     cont = []   # graph number container
@@ -127,95 +169,64 @@ def read_adj(file, fp, start, goal):
                 x = i, j
                 cont.append(x)
 
-    return g, gnx, coord, cont
+    return g, gnx, pos, coord, cont
 
-def distance(p1, p2):
-    # euclidean distance between 2 point based on its coordinates
-    return math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
 
-def draw(result, gnx, coord, cont, cost):
-    # using networkx and matplotlib
-    # draw resulting a* path
-    other = set(coord) - set(result)
-    other = list(other)
-    result = convert_list(result, coord)
-    other = convert_list(other, coord)
+# function to draw using networkx and matplotlib
 
-    pos = nx.get_node_attributes(gnx, 'pos')
-    labels = nx.get_edge_attributes(gnx, 'weight')
+def draw(result, gnx, pos, coord, cont):
+    results = []
+    other = []
 
-    # draw nodes
+    for i in range(len(coord)):
+        for j in range(len(result)):
+            if (coord[i] == result[j]):
+                results.append(i)
+                print(i)
+            else:
+                other.append(i)
+
     nx.draw_networkx_nodes(gnx, pos,
-                           nodelist=result,
+                           nodelist=results,
                            node_color='r',
-                           node_size=150,
+                           node_size=500,
                            alpha=0.8)
 
     nx.draw_networkx_nodes(gnx, pos,
                            nodelist=other,
-                           node_color='y',
-                           node_size=150,
+                           node_color='b',
+                           node_size=500,
                            alpha=0.8)
 
-    new_result = []
-    for i in range(len(result)-1):
-        temp = result[i], result[i+1]
-        new_result.append(temp)
+    resulting_edges = separate_edge(results, cont)
 
-    # draw edges
     nx.draw_networkx_edges(gnx, pos,
-                           edgelist=new_result,
-                           width=1, alpha=1, edge_color='b', label=labels)
-
+                           edgelist=resulting_edges,
+                           width=5, alpha=0.5, edge_color='r')
     nx.draw_networkx_edges(gnx, pos,
                            edgelist=cont,
-                           width=1, alpha=0.5, edge_color='y', label=labels)
+                           width=5, alpha=0.5, edge_color='b')
 
-    nx.draw_networkx_labels(gnx, pos, font_size=8, font_family='sans-serif')
-
-    # plot using matplotlib
-    plt.axis('off')
-    dist = "Total Distance = " + str(cost)
-    plt.title("Path Result" + "\n" + dist)
+    print(nx.info(gnx))
     plt.show()
 
-def convert_list(conv, coord):
-    # function to convert from list of coordinates to list of graph number
-    result = []
-    for i in range(len(conv)):
-        for j in range(len(coord)):
-            if ((conv[i])[0] == (coord[j])[0]) and ((conv[i])[1] == (coord[j])[1]):
-                result.append(j)
 
-    return result
+def separate_edge(result, cont):
+    results = []
 
+    j = 0
+    for i in range(len(result)-1):
+        found = False
+        while (not found) and (j < len(cont)):
+            x = cont[j][0], cont[j][1]
+            if (cont[j][0] == result[i] and cont[j][1] == result[i+1]) or (cont[j][0] == result[i+1] and cont[j][1] == result[i]):
+                found = True
+                results.append(x)
+            j += 1
+
+    return results
 
 if __name__ == '__main__':
-    # Euclidean distance
-    def sldist(c1, c2): return math.sqrt(
-        (c2[0] - c1[0])**2 + (c2[1] - c1[1])**2)
-
-    # retrieve file name
-    adj = input("Enter adjacency matrix file name (.csv) : ")
-    coord = input("Enter nodes coordinate file name (.csv) : ")
-    start = int(input("Enter desired start node : "))
-    goal = int(input("Enter desired destination node : "))
-
-    g, gnx, coordinate, cont = read_adj(adj, coord, start, goal)
-
-    result, cost = shortest_path(
-        g, coordinate[start], coordinate[goal], sldist)
-
-    # print result
-    print(result)
-    newrest = convert_list(result, coordinate)
-    print("RESULT = ")
-    print("Step by step to reach goal node from start node")
-    res_str = ""
-    for i in range(len(newrest)):
-        res_str = res_str + "-->" + str(newrest[i])
-    print(res_str)
-
-    print("\nTotal Distance = " + str(cost))
-
-    draw(result, gnx, coordinate, cont, cost)
+	# run!
+    app.debug = True
+    app.run()

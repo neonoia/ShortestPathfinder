@@ -1,0 +1,44 @@
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+
+<body onload='initialize()'>
+    Lat:
+    <input id="lat" name="lat" val="40.713956" /> Long:
+    <input id="long" name="long" val="74.006653" />
+    <div id="map_canvas" style="width: 500px; height: 250px;"></div>
+
+    <script>
+        var map;
+
+        function initialize() {
+            var myLatlng = new google.maps.LatLng({{ geolat }}, { { geolong } });
+
+            var myOptions = {
+                zoom: 16,
+                center: myLatlng,
+                streetViewControl: true,
+                mapTypeControl: true,
+                zoomControl: true,
+                mapTypeId: google.maps.MapTypeId.SATELLITE
+            };
+            map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+
+            var marker = new google.maps.Marker({
+                draggable: true,
+                position: myLatlng,
+                map: map,
+                title: "Your location"
+            });
+
+            google.maps.event.addListener(marker, 'dragend', function (event) {
+                sendCoords(event.latLng.lat(), event.latLng.lng())
+            });
+
+            // close popup window
+            google.maps.event.addListener(map, 'click', function () {
+                infowindow.close();
+            });
+
+        }
+        google.maps.event.addDomListener(window, "load", initialize());
+    </script>
+</body>
