@@ -137,7 +137,7 @@ def distance(p1, p2):
 # function to draw using networkx and matplotlib
 
 
-def draw(result, gnx, coord, cont):
+def draw(result, gnx, coord, cont, cost):
     other = set(coord) - set(result)
     other = list(other)
     result = convert_list(result, coord)
@@ -174,6 +174,8 @@ def draw(result, gnx, coord, cont):
     nx.draw_networkx_labels(gnx, pos, font_size=8, font_family='sans-serif')
 
     plt.axis('off')
+    dist = "Total Distance = " + str(cost)
+    plt.title("Path Result" + "\n" + dist)
     plt.show()
 
 def convert_list(conv, coord):
@@ -200,8 +202,15 @@ if __name__ == '__main__':
     result, cost = shortest_path(
         g, coordinate[start], coordinate[goal], sldist)
 
-    print("Total Distance = " + str(cost))
+    newrest = convert_list(result, coordinate)
+    print("RESULT = ")
+    print("Step by step to reach goal node from start node")
+    res_str = ""
+    for i in range(len(newrest)):
+        res_str = res_str + "-->" + str(newrest[i])
+    print(res_str)
+
+    print("\nTotal Distance = " + str(cost))
 
     # here we set up the graph we are using for testing purposes
-    draw(result, gnx, coordinate, cont)
-    print("Total Cost = " + str(cost))
+    draw(result, gnx, coordinate, cont, cost)
